@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "drug": {
+      "title": "Drug",
+      "description": "A drug available in the pharmacy.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the drug" },
+        "category": { "type": "string", "description": "Category (e.g., Antibiotics, Painkillers)" },
+        "description": { "type": "string", "description": "Brief description" },
+        "price": { "type": "number", "description": "Price of the drug" },
+        "available": { "type": "boolean", "description": "Availability status" }
+      },
+      "required": ["name", "category", "available"]
+    },
+    "inquiry": {
+      "title": "Drug Inquiry",
+      "description": "A customer inquiry about drug availability.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "drugName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "prescriptionUrl": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Ready", "Completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerName", "phoneNumber", "drugName", "status", "createdAt"]
+    },
+    "refill": {
+      "title": "Prescription Refill",
+      "description": "A request for a prescription refill.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "previousPrescriptionId": { "type": "string" },
+        "prescriptionUrl": { "type": "string" },
+        "preferredPickupTime": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Ready", "Completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerName", "phoneNumber", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/drugs/{drugId}": {
+      "schema": "drug",
+      "description": "Collection of drugs available in the pharmacy."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "inquiry",
+      "description": "Customer drug inquiries."
+    },
+    "/refills/{refillId}": {
+      "schema": "refill",
+      "description": "Prescription refill requests."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Rohi-Healthcare Center",
+  "description": "A professional online healthcare inquiry and prescription refill system for Rohi-Healthcare Center.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}

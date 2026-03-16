@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: drugs
+    // Fields: name (string), category (string), description (string), price (number), available (bool)
+    //
+    // Collection: inquiries
+    // Fields: customerName (string), phoneNumber (string), drugName (string), quantity (number), 
+    //         prescriptionUrl (string), notes (string), status (string), createdAt (timestamp)
+    //
+    // Collection: refills
+    // Fields: customerName (string), phoneNumber (string), previousPrescriptionId (string), 
+    //         prescriptionUrl (string), preferredPickupTime (string), status (string), createdAt (timestamp)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "davidaiki17@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidDrug(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.category is string && data.category.size() > 0 &&
+             data.available is bool;
+    }
+
+    function isValidInquiry(data) {
+      return data.customerName is string && data.customerName.size() > 0 && data.customerName.size() < 100 &&
+             data.phoneNumber is string && data.phoneNumber.size() >= 10 &&
+             data.drugName is string && data.drugName.size() > 0 &&
+             data.status in ['Pending', 'Ready', 'Completed'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidRefill(data) {
+      return data.customerName is string && data.customerName.size() > 0 && data.customerName.size() < 100 &&
+             data.phoneNumber is string && data.phoneNumber.size() >= 10 &&
+             data.status in ['Pending', 'Ready', 'Completed'] &&
+             data.createdAt is timestamp;
+    }
+
+    // Rules
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+
+    match /drugs/{drugId} {
+      allow read: if true; // Publicly readable for search
+      allow write: if isAdmin() && isValidDrug(request.resource.data);
+    }
+
+    match /inquiries/{inquiryId} {
+      allow read: if isAdmin();
+      allow create: if isValidInquiry(request.resource.data);
+      allow update: if isAdmin() && isValidInquiry(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /refills/{refillId} {
+      allow read: if isAdmin();
+      allow create: if isValidRefill(request.resource.data);
+      allow update: if isAdmin() && isValidRefill(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}
